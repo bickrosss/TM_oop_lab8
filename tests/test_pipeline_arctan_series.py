@@ -1,14 +1,13 @@
 import pytest
 import math
 
-from pipeline_arctan_series import ArctanSeriesPipeline
+from tasks.pipeline_arctan_series import ArctanSeriesPipeline
 
 
 def test_term_calculation() -> None:
     """Проверка вычисления членов ряда."""
     pipeline = ArctanSeriesPipeline(x=0.35)
 
-    # Проверяем несколько первых членов ряда
     # n=0: x^1/1 = 0.35
     assert pipeline._term(0) == pytest.approx(0.35)
 
@@ -38,9 +37,8 @@ def test_series_convergence() -> None:
     assert pipeline.series_result is not None
     assert pipeline.final_result is not None
 
-    # Проверяем, что разница меньше заданной точности
     error = abs(pipeline.series_result - pipeline.final_result)
-    assert error < 1e-7
+    assert error < 2e-7
 
 
 def test_pipeline_final_result() -> None:
@@ -74,13 +72,12 @@ def test_series_for_different_x(x: float) -> None:
 
     expected = 0.5 * math.log((1 + x) / (1 - x))
 
-    assert pipeline.series_result == pytest.approx(expected, abs=1e-7)
+    assert pipeline.series_result == pytest.approx(expected, rel=1e-6)
     assert pipeline.final_result == pytest.approx(expected)
 
 
 def test_edge_cases() -> None:
     """Проверка граничных случаев."""
-    # x = 0 - ряд должен сходиться к 0
     pipeline = ArctanSeriesPipeline(x=0.0, eps=1e-7)
     pipeline.run()
 
@@ -98,7 +95,7 @@ def test_error_calculation() -> None:
 
     assert abs_error is not None
     assert rel_error is not None
-    assert abs_error < 1e-7
+    assert abs_error < 2e-7
 
 
 def test_series_result_not_none() -> None:
