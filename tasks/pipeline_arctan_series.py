@@ -54,19 +54,28 @@ class ArctanSeriesPipeline:
 
         s: float = 0.0
         n: int = 0
-
+        prev_s: float = 0.0
+        
+        # Основной цикл суммирования
         while True:
+            # Вычисляем текущий член ряда
             a_n = self._term(n)
-            if abs(a_n) < self.eps:
-                print(f"[Thread {index}] Достигнута точность ε={self.eps} на n={n}")
-                break
             s += a_n
             n += 1
+            
+            if abs(s - prev_s) < self.eps:
+                print(f"[Thread {index}] Достигнута точность ε={self.eps} на n={n}")
+                break
+                
+            prev_s = s
+            
+            if n > 10000: 
+                print(f"[Thread {index}] Достигнут предел итераций: {n}")
+                break
 
         self.series_result = s
-        print(f"[Thread {index}] Сумма ряда S = {s:.10f}")
+        print(f"[Thread {index}] Сумма ряда S = {s:.10f} (вычислено {n} членов)")
         
-        # Сигнализируем, что результат готов
         self.ready_event.set()
 
     def _second_function(self) -> float:
@@ -87,8 +96,7 @@ class ArctanSeriesPipeline:
             index: Идентификатор потока для отладки
         """
         print(f"[Thread {index}] Ожидание результата первой функции...")
-        
-        # Ждем, пока первый поток завершит вычисления
+    
         self.ready_event.wait()
 
         assert self.series_result is not None
@@ -104,7 +112,6 @@ class ArctanSeriesPipeline:
         print("ЗАПУСК КОНВЕЙЕРА ВЫЧИСЛЕНИЙ")
         print("=" * 50)
         
-        # Создаем и запускаем потоки
         t1: Thread = Thread(target=self._first_worker, args=(1,))
         t2: Thread = Thread(target=self._second_worker, args=(2,))
 
